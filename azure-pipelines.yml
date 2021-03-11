@@ -19,7 +19,7 @@ variables:
   vmImageName:'ubuntu-latest'
 
 stages :
-- task: Maven@3
+ - task: Maven@3
   inputs:
     mavenPomFile: 'pom.xml'
     publishJUnitResults: true
