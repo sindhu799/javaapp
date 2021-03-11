@@ -18,8 +18,8 @@ variables:
  # Agent VM image name
   vmImageName:'ubuntu-latest'
 
-- stages :
- - task: Maven@3
+stages:
+- task: Maven@3
   inputs:
     mavenPomFile: 'pom.xml'
     publishJUnitResults: true
