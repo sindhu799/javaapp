@@ -15,11 +15,24 @@ variables:
   containerRegistry: 'mavenacr2222.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   tag: '$(Build.BuildId)'
+ # Agent VM image name
+  vmImageName:'ubuntu-latest'
+- stages :
+- stage :
+steps
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    publishJUnitResults: true
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    codeCoverageToolOption: 'Cobertura'
+    javaHomeOption: 'JDKVersion'
+    mavenVersionOption: 'Default'
+    mavenAuthenticateFeed: false
+    effectivePomSkip: false
+    sonarQubeRunAnalysis: true
+    sqMavenPluginVersionChoice: 'latest'
 
-  # Agent VM image name
-  vmImageName: 'ubuntu-latest'
-
-stages:
 - stage: Build
   displayName: Build and push stage
   jobs:
