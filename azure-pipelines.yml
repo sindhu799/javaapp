@@ -1,51 +1,33 @@
-# Docker
-# Build and push an image to Azure Container Registry
-# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+Code to Build and push image into ACR:
 
-trigger:
-- master
 
-resources:
-- repo: self
+pool:
+  vmImage: ubuntu-latest
 
-variables:
-  # Container registry service connection established during pipeline creation
-  dockerRegistryServiceConnection: 'c9ea07dc-72bf-4383-9ddc-e6a9f5d30a40'
-  imageRepository: 'sindhujavaapp'
-  containerRegistry: 'mavenacr2222.azurecr.io'
-  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
-  tag: '$(Build.BuildId)'
- # Agent VM image name
-  vmImageName:'ubuntu-latest'
-
-stages:
+steps:
 - task: Maven@3
   inputs:
-    mavenPomFile: 'pom.xml'
+    mavenPomFile: 'Spring_boot/pom.xml'
+    goals: 'clean install'
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    codeCoverageToolOption: 'Cobertura'
     javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.11'
     mavenVersionOption: 'Default'
     mavenAuthenticateFeed: false
     effectivePomSkip: false
-    sonarQubeRunAnalysis: true
-    sqMavenPluginVersionChoice: 'latest'
-
-- stage: Build
-  displayName: Build and push stage
-  jobs:
-  - job: Build
-    displayName: Build
-    pool:
-      vmImage: $(vmImageName)
-    steps:
-    - task: Docker@2
-      displayName: Build and push an image to container registry
-      inputs:
-        command: buildAndPush
-        repository: $(imageRepository)
-        dockerfile: $(dockerfilePath)
-        containerRegistry: $(dockerRegistryServiceConnection)
-        tags:
-          $(tag)
+    sonarQubeRunAnalysis: false
+    
+               
+- task: Docker@2
+  inputs:
+    containerRegistry: 'ADD YOUR ACR NAME'
+    repository: 'Azure Container Registry'
+    command: 'build'
+    Dockerfile: '**/Dockerfile'
+               
+- task: Docker@2
+  inputs:
+    containerRegistry: 'ADD YOUR ACR NAME'
+    repository: 'Azure Container Registry'
+    command: 'push'
