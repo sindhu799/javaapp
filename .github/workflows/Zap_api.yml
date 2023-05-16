@@ -1,0 +1,87 @@
+# GitHub Action workflow that runs DAST scan on API and publish a report in Jira, GitHub issues, produces an artifact
+# Intended location of this file is .github/workflows/zap_api.yml
+
+name: "ZAP API Scan"
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 4 * * 1'    # trigger synchronization every Monday 4AM
+
+jobs:
+  zap_scan:
+    runs-on: ubuntu-latest 
+    name: Scan API
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: develop # takes code from develop branch
+          
+      # Scan 1st API endpoint
+      - name: ZAP Scan Profile Management API
+        uses: zaproxy/action-api-scan@v0.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          docker_name: 'owasp/zap2docker-stable'
+          format: openapi
+          target: '.zap/Profile_Management_API.mock.rev1.yaml'
+          rules_file_name: '.zap/api_rules.tsv'
+          allow_issue_writing: true # allows to write new issues to GitHub issues
+          fail_action: false # change to true if you want to fail PRs when 'WARN' ZAP findings are detected
+          cmd_options: '-a -d -z "-config replacer.full_list(0).description=auth1 -config replacer.full_list(0).enabled=true -config replacer.full_list(0).matchtype=REQ_HEADER -config replacer.full_list(0).matchstr=Ocp-Apim-Subscription-Key -config replacer.full_list(0).regex=false -config replacer.full_list(0).replacement=${{secrets.ZAP_AUTH_TOKEN}}"'
+
+      - name: Copy ZAP files from first endpoint
+        run: |
+          echo "Moving configuration file to results folder"
+          mkdir -p results
+          cp report_html.html results/m1-report_html.html
+      
+      # Publish 1st ZAP report to Jira
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r scripts/requirements.txt
+      - name: Publish ZAP report to Jira
+        env:
+          JIRA_USER: ${{ secrets.JIRA_USER }}
+          JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
+          JIRA_PROJECT: C365
+          JIRA_BASE_URL: https://metrolinx.atlassian.net/rest/api/2/issue/ # URL of Jira to post issues to
+          REPORT_NAME: "Profile-Management-API"
+        run: python3 scripts/zap_to_jira.py
+
+      # Scan 2nd API endpoint
+      - name: ZAP Scan Case Management API
+        uses: zaproxy/action-api-scan@v0.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          docker_name: 'owasp/zap2docker-stable'
+          format: openapi
+          target: '.zap/Case_Management_API.yaml'
+          rules_file_name: '.zap/api_rules.tsv'
+          allow_issue_writing: true # allows to write new issues to GitHub issues 
+          fail_action: false # change to true if you want to fail PRs when 'WARN' ZAP fingings are detected
+          cmd_options: '-a -d -z "-config replacer.full_list(0).description=auth1 -config replacer.full_list(0).enabled=true -config replacer.full_list(0).matchtype=REQ_HEADER -config replacer.full_list(0).matchstr=Ocp-Apim-Subscription-Key -config replacer.full_list(0).regex=false -config replacer.full_list(0).replacement=${{secrets.ZAP_AUTH_TOKEN}}"'
+      - name: Copy ZAP files from second endpoint
+        run: |
+          echo "Moving configuration file to results folder"
+          mkdir -p results
+          cp report_html.html results/m2-report_html.html
+      
+      # Publish 2nd ZAP report to Jira
+      - name: Publish ZAP report to Jira
+        env:
+          JIRA_USER: ${{ secrets.JIRA_USER }}
+          JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
+          JIRA_PROJECT: C365
+          JIRA_BASE_URL: https://metrolinx.atlassian.net/rest/api/2/issue/
+          REPORT_NAME: 'Case-Management-API'
+        run: python3 scripts/zap_to_jira.py
