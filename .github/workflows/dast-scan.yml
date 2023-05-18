@@ -1,0 +1,24 @@
+
+name: "Start DAST/ZAP scan at night on scheduler"
+
+on: 
+  workflow_dispatch:
+  
+  schedule:
+    - cron: "15 1 * * *"
+    
+  push:
+    branches: ["master"]
+
+jobs:
+  zap_scan:
+    runs-on: ubuntu-latest
+    name: Scan the webapplication
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: ZAP Scan
+        uses: zaproxy/action-api-scan@v0.1.1
+        with:
+          target: 'https://dssisit.vercel.app/'
