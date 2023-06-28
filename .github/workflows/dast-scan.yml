@@ -5,14 +5,14 @@ on:
   workflow_dispatch:
   
   schedule:
-    - cron: "0 13 * * *"
+    - cron: "05 13 * * *"
     
   push:
     branches: ["master"]
 
 jobs:
   zap_scan:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     name: Scan the webapplication
     steps:
       - name: Checkout
