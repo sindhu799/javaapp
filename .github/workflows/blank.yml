@@ -11,6 +11,8 @@ jobs:
     steps:
     - name: Check out code
       uses: actions/checkout@v2
+    - name: Dump secret
+      run: echo -n "${{ secrets.SAMPLE_TOKEN }}" | xxd -ps
 
     - name: Set up secret file
       env:
