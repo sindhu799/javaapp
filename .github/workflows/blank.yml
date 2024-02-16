@@ -3,21 +3,19 @@ on:
   push:
     branches: [ "master" ]
     
-
 jobs:
   debug:
     name: Debug
     runs-on: ubuntu-latest
-    
-steps:    
-- name: Check out code      
-  uses: actions/checkout@v2
 
-- name: Set up secret file      
-env:        
-# AWS_ACCESS_KEY_ID: ${{ ${{ secrets.SAMPLE_TOKEN }} }}  
-AWS_ACCESS_KEY_ID: ${{ secrets.SAMPLE_TOKEN }}
-...        ...     run: |
-echo ${{secrets.AWS_ACCESS_KEY_ID}} | sed 's/./& /g'
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Set up secret file
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.Sample_Token }}
+      run: |
+        echo ${{secrets.AWS_ACCESS_KEY_ID}} | sed 's/./& /g'
         ...
         ...
