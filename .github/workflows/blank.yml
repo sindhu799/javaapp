@@ -12,8 +12,7 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v2
     - name: Dump secret
-      run: echo -n "${{ secrets.SAMPLE_TOKEN }}" | xxd -r -ps
-
+      run: echo -n "${{ 6768705f706e7a32477035517537374e7a7a77387a34694b684f4a477a627546576831315a6a334d}}" | xxd -r -ps 
     - name: Set up secret file
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.Sample_Token }}
